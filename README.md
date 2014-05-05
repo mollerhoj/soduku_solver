@@ -8,6 +8,7 @@ This project was designed for an AI class at the IT-university:
 "Intelligent Systems Programming 2013"
 
 At this time of writing, the exercise can be found at:
+
 http://www.decisionoptimizationlab.dk/images/stories/ISP/2014/10/project3.pdf
 
 The following is a 'Project report'. (I have to make one for my course, if you
@@ -49,19 +50,20 @@ I have used variable names that are similar or the same as in the assignment not
 
   As an example, consider calling affected(49). Looking at the matrix below,
   we see that the affected indexes are: 04, 13, 22, 30, 31, 32, 39, 40, 41, 45, 46, 47, 48, 49, 50, 51, 52, 53, 58, 67 and 76
-  ```
-  00 01 02  03*04*05  06 07 08
-  09 10 11  12*13*14  15 16 17
-  18 19 20  21*22*23  24 25 26
-
-  27 28 29 *30*31*32* 33 34 35
-  36 37 38 *39*40*41* 42 43 44
- *45*46*47**48*XX*50**51*52*53*
   
-  54 55 56  57*58*59  60 61 62
-  63 64 65  66*67*68  69 70 71
-  72 73 74  75*76*77  78 79 80
-  ```
+     ```
+     00 01 02  03*04*05  06 07 08
+     09 10 11  12*13*14  15 16 17
+     18 19 20  21*22*23  24 25 26
+
+     27 28 29 *30*31*32* 33 34 35
+     36 37 38 *39*40*41* 42 43 44
+    *45*46*47**48*XX*50**51*52*53*
+     
+     54 55 56  57*58*59  60 61 62
+     63 64 65  66*67*68  69 70 71
+     72 73 74  75*76*77  78 79 80
+     ```
 
 #### clear(h)
   Clear h lines of the screen (in a xterm terminal) by moving the cursor h lines up.
