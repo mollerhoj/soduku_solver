@@ -41,7 +41,7 @@ def fc(asc,d)
   d[x].each do |v|
     arc_con(x,v,d,asc)
     asc[x] = v
-    render(asc)
+    render(asc) # Just to see the progress
     try = fc(asc,d)
     if try == "failure"
       asc[x] = 0

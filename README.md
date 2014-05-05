@@ -2,11 +2,13 @@ Solving a sudoku with constraint programming
 ============================================
 by Jens Dahl Mollerhoj
 
-The AI uses the minimax algorithm with cut-off, alpha-beta pruning and a quite 
-computationally expensive heuristic.
+A small ruby script that uses the forward checking algorithm to solve a sudoku.
 
 This project was designed for an AI class at the IT-university:
 "Intelligent Systems Programming 2013"
+
+At this time of writing, the exercise can be found at:
+http://www.decisionoptimizationlab.dk/images/stories/ISP/2014/10/project3.pdf
 
 The following is a 'Project report'. (I have to make one for my course, if you
 want to keep your sanity, I would stop reading now.)
@@ -21,156 +23,84 @@ Instead of implementing implementation specific optimisation from the beginning
 implementation. Since I have been working alone and on a schedule, I have
 preferred a quick (and a little bit hackish) development style.
 
-I've also used the project to practice my TDD-development skills. Using
-minitest instead of Rspec for the first time. (It has been a mixed experience)
-
-The testes do not cover all parts of the code (As I skipped them and just hacked
-my way through as the project was about to be finished). However, no tests
-are broken, and if one were to continue development, it should be quite easy
-to get good coverage quickly.
+I have used variable names that are similar or the same as in the assignment notes. I've also included some comments to help out understanding my code.
 
 ### A description of the files:
 
-#### bin/Game
-  A little script that starts a standard Human vs. CPU game:
+#### sodoku.rb
+  A little script that solves the soduku given in the end of the file. Run the script with
   ```
-  ruby bin/Game.rb
+  ruby sodoku.rb
   ```
   
-#### Board
-  A matrix representing the board. Can asked if columns are full and coins can be dropped in the columns. It also features a colorful render function.
+#### affected.rb
+  Exposes the
+  ```
+  affected(x)
+  ```
+  method. Described below
 
-#### AI
-  An AI whose 'next_move' function returns the best move found at a given
-  board. It uses the minimax algorithm described below.
-
-#### Referee
-  Judges whether or not a player has won, also home of the heuristic used by the AI.
-
-### The minimax algorithm
-
-  From wikipedia:
-  "Minimax (sometimes MinMax or MM) is a decision rule used in decision
-  theory, game theory, statistics and philosophy for minimising the possible
-  loss for a worst case (maximum loss) scenario. Alternatively, it can be
-  thought of as maximising the minimum gain (maximin or MaxMin). Originally
-  formulated for two-player zero-sum game theory, covering both the cases
-  where players take alternate moves and those where they make simultaneous
-  moves, it has also been extended to more complex games and to general
-  decision making in the presence of uncertainty."
-
-### Alpha-beta pruning
-  From wikipedia:
-  Alpha-beta pruning is a search algorithm that seeks to decrease the number of nodes that are evaluated by the minimax algorithm in its search tree. It is an adversarial search algorithm used commonly for machine playing of two-player games (Tic-tac-toe, Chess, Go, etc.). It stops completely evaluating a move when at least one possibility has been found that proves the move to be worse than a previously examined move. Such moves need not be evaluated further. When applied to a standard minimax tree, it returns the same move as minimax would, but prunes away branches that cannot possibly influence the final decision.
-
-### Cut-off
-  Since it is too computationally expensive to search the entire game tree,
-  my algorithm stops traversing the tree at a given depth. This can be
-  thought of as a number of moves the AI 'thinks' forward. A search depth
-  of 5 or below have turned out to give a reasonable response time. With the
-  optimisations mentioned below, it should be possible to go deeper. The function also cuts off if the board is full, or if one of the players has won.
-
-### Heuristic
-
-  The heuristic I have implemented is quite heavy. I checks every single
-  possible combination of 4 cells in which it is possible to win the game. To do
-  so, we first have to determine those combinations. Lets count them:
-
-  On a normal 7x6 sized board:
+### A description of the methods:
   
-  Every row has 4 possible combinations of cells
-  in which one can win horizontally: [0,1,2,3],[1,2,3,4],[2,3,4,5] and
-  [3,4,5,6]. Since there are 6 rows, there are 6*4=24 spaces where one can win
-  with a horizontal line.
+#### affected(x) 
+  This method takes an index, and returns a list of all the
+  indexes that are connected by constraints. The constraints are imposed on
+  all indexes in the same row, column and box as the index.
 
-  Every column has 3 possible combinations of cells in which one can win (one
-  less than the rows, because the board is only 6 cells tall.) Since there are
-  7 columns, there are 7*3=21 spaces where one can win with a vertical line.
-
-  Diagonally, there are 24 possible spaces. This can be illustrated the
-  following way:
-
-  If we move down and to the right diagonally, then the spaces can start from
-  the following positions:
-
+  As an example, consider calling affected(49). Looking at the matrix below,
+  we see that the affected indexes are: 04, 13, 22, 30, 31, 32, 39, 40, 41, 45, 46, 47, 48, 49, 50, 51, 52, 53, 58, 67 and 76
   ```
-  xxxx...
-  xxxx...
-  xxxx...
-  .......
-  .......
-  .......
+  00 01 02  03*04*05  06 07 08
+  09 10 11  12*13*14  15 16 17
+  18 19 20  21*22*23  24 25 26
+
+  27 28 29 *30*31*32* 33 34 35
+  36 37 38 *39*40*41* 42 43 44
+ *45*46*47**48*XX*50**51*52*53*
+  
+  54 55 56  57*58*59  60 61 62
+  63 64 65  66*67*68  69 70 71
+  72 73 74  75*76*77  78 79 80
   ```
 
-  Likewise for moving diagonally to the right and upwards:
+#### clear(h)
+  Clear h lines of the screen (in a xterm terminal) by moving the cursor h lines up.
 
-  ```
-  .......
-  .......
-  .......
-  xxxx...
-  xxxx...
-  xxxx...
-  ```
+#### render(asc)
+  Draw the sudoku (as it is currently filled out) on the screen.
 
-  This gives a total of 24+21+24 69 spaces to check. Now, each space is
-  assigned a score in the following way:
+#### deep_clone(asc)
+  Clone an array and its subarrays
 
-### Score assigned to a possible win space
+#### arc_con(x,v,d,asc)
+  Set the variable x in asc to v. Then remove v from the domain of all affected variables.
+  * x the variable to set.
+  * v the value that x is set to
+  * d the array of domains that must be updated (inplace)
+  * asc the current assignment
 
-  The heuristic gives points to a space of four cells in which it might be
-  possible to get a 4x4. if both X's and O's are present, it is not possible
-  to get a 4x4, and the function yields 0. Otherwise, the function returns: 
+  This method ensures arc consistency by removing variables in from the domain. It uses the 'affected(x)' method described above to determine what domains should be updated.
 
-  * For 1 O:   1
-  * For 2 O's: 10
-  * For 3 O's: 100
-  * For 4 O's: 1000
-  * For 1 X:   -1
-  * For 2 X's: -10
-  * For 3 X's: -100
-  * For 4 X's: -1000
+#### arc_con_all(asc,d)
+  Called initially to ensure that the initial assignment by the sodoku is taken into account. It scans the sodoku to find variables that are set (not 0), and uses arc_con to remove those variables by the affected domains.
 
-### Some thoughts
+#### fc(asc,d)
+  Is the forward checking algorithm described in the notes. Since the variable names are the same, it should be pretty easy to follow.
 
-- An even smarter heuristic could look at more game specific rules, e.g:
-  threats (3 connected coins) that can no longer come into play because a
-  threat below makes it impossible to reach the threat above.
+  * 1. if all variables has been assigned, we are done. Else:
+  * 2. Look at the first empty variable and set it to the first possible value from it's domain.
+  * 3. Impose arc consistancy after setting the variable.
+  * 4. Render the new soduko
+  * 5. Recur
+  * 6. If the recuring failed, then restore the domains to the initial domain, and se the variable to 0 (backtrack)
+  * 7. If the recuring succeded, we are done.
 
-- The Board class inherits the Matrix class from the standard library. I have
-regretted this decision since the Matrix class is horrible. Inconsistent
-methods and bad naming makes it a pain to work with.
+#### first_zero(asc)
+  Return the index of the first free variable.
 
-### Implementation optimisations
+#### no_zeros?(asc)
+  Are there any free variables?
 
-Experimentation with a lighter heuristic might allow the search to go
-deeper, and therefore yield a smarter AI.
-
-Since nothing is ever erased from the board, a smart heuristic could save the 
-previously calculated heuristic score, and add to that, based on the new move.
-Then it would be sufficient to check only the win positions that is affect by
-the new move.
-
-It would be very possible to save a lot of memory. My implementation clones
-objects of matrixes of strings. These could be implemented with bits instead.
-Since there are 6\*7=42 cells, and they can have 3 values 'X','O' and '.', they
-could be represented with max 42\*2=84 bits. I have not measured the bitsize of
-a object of the Board class, but I'm pretty sure it's a lot bigger.
-
-### In the future
-
-If I were to continue development, this would be my next steps:
-
-* Make the classes smaller by splitting them up: A Heuristic class, a Render class etc.
-* Get full test coverage.
-* Implement some of the optimisations mentioned above.
-* A Script to connect the AI to Java (or maybe JRuby). I need that to access a CPU vs. CPU competition.
-* Work on the heuristic: e.g making the '4 coins = 1000' score even higher.
-* Connect the AI to a sinatra server, thus exposing connect 4 to the world.
-
-### Conclusion
-
-The AI is quite fun to play against: Especially when you learn its weaknesses.
-The guys from my dorm find it to be quite a challenge.
+### License
 
 DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE: www.wtfpl.net
